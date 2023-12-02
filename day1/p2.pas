@@ -103,19 +103,24 @@ var
 	res: EndDigits;
 	sum: int32;
 	n: int32;
+	iter: int32;
 begin
-	path := 'input.txt';
-	assign(fp, path);
-	reset(fp);
-
-	sum := 0;
-	while (not eof(fp)) do
+	for iter:=1 to paramCount do
 	begin
-		readln(fp, line);
-		res := ParseEndDigits(line);
-		n := res.first * 10 + res.last;
-		sum += n;
-	end;
+		path := paramStr(iter);
+		assign(fp, path);
+		reset(fp);
 
-	writeln (sum);
+		sum := 0;
+		while (not eof(fp)) do
+		begin
+			readln(fp, line);
+			res := ParseEndDigits(line);
+			n := res.first * 10 + res.last;
+			sum += n;
+		end;
+
+		close(fp);
+		writeln (path, ' -> ', sum);
+	end;
 end.
