@@ -3,61 +3,67 @@ program p2;
 type
 Tokenizer = record
     str: string;
-    cur: int32;
-	parsed: boolean;
+	pos: int32;
+    parsed: int32;
 end;
 
-procedure TryParseDigit(name: string; digit: int32; var tok: Tokenizer);
+function HasPrefix(str: string; prefix: string): boolean;
 var
 	iter: int32;
+	res: boolean;
 begin
-	tok.parsed := false;
-
-	if (Length(name) <= Length(tok.str)) then
+	res := false;
+	if (Length(prefix) <= Length(str)) then
 	begin
-		tok.parsed := true;
-		for iter := 1 to Length(name) do
+		res := true;
+		for iter := 1 to Length(prefix) do
 		begin
-			if (name[iter] <> tok.str[iter]) then
+			if (prefix[iter] <> str[iter]) then
 			begin
-				tok.parsed := false;
+				res := false;
 				break;
 			end;
 		end;
 	end;
-
-	if (tok.parsed) then
-	begin
-		tok.str := Copy(tok.str, Length(name), Length(tok.str) - Length(name) + 1);
-		tok.cur := digit;
-	end;
+	HasPrefix := res;
 end;
 
 var
 	digits: array [1 .. 9] of string = ('one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine');
 
-procedure TryParseOne2Nine(var tok: Tokenizer);
+function TryParseDigit(var tok: Tokenizer): boolean;
 var
 	iter: int32;
+	res: boolean;
+	sub: string;
 begin
-	tok.parsed := false;
-	while (Length(tok.str) > 0) do
+	res := false;
+	while tok.pos <= Length(tok.str) do
 	begin
-		if ((tok.str[1] >= '0') and (tok.str[1] <= '9')) then
+		if ((tok.str[tok.pos] >= '0') and (tok.str[tok.pos] <= '9')) then
 		begin
-			tok.parsed := true;
-			tok.cur := ord(tok.str[1]) - ord('0');
-			tok.str := Copy(tok.str, 2, Length(tok.str) - 1);
+			res := true;
+			tok.parsed := ord(tok.str[tok.pos]) - ord('0');
+			tok.pos += 1;
 			break;
 		end;
-		for iter:=1 to Length(digits) do
+
+		sub := Copy(tok.str, tok.pos, Length(tok.str) - tok.pos + 1);
+		for iter := 1 to Length(digits) do
 		begin
-			TryParseDigit(digits[iter], iter, tok);
-			if (tok.parsed) then break;
+			if (HasPrefix(sub, digits[iter])) then
+			begin
+				res := true;
+				tok.parsed := iter;
+				tok.pos += Length(digits[iter]) - 1;
+				break;
+			end;
 		end;
-		if (tok.parsed) then break;
-		tok.str := Copy(tok.str, 2, Length(tok.str) - 1);
+
+		if (res) then break;
+		tok.pos += 1;
 	end;
+	TryParseDigit := res;
 end;
 
 type
@@ -72,18 +78,21 @@ var
 	tok: Tokenizer;
 begin
 	tok.str := input;
-	tok.cur := 0;
-	tok.parsed := false;
+	tok.pos := 1;
+	tok.parsed := 0;
 
-	TryParseOne2Nine(tok);
-	result.first := tok.cur;
+	result.first := 0;
+	result.last := 0;
 
-	while (tok.parsed) do
+	if (TryParseDigit(tok)) then
 	begin
-		TryParseOne2Nine(tok);
+		result.first := tok.parsed;
+		while (TryParseDigit(tok)) do
+		begin
+		end;
+		result.last := tok.parsed;
 	end;
 
-	result.last := tok.cur;
 	ParseEndDigits := result;
 end;
 
@@ -98,8 +107,6 @@ begin
 	path := 'input.txt';
 	assign(fp, path);
 	reset(fp);
-
-	writeln (sizeof(int32));
 
 	sum := 0;
 	while (not eof(fp)) do

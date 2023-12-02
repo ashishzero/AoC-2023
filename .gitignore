@@ -1,4 +1,5 @@
 *.txt
 *.o
+*.hi
+day1/p1
 day1/p2
-
