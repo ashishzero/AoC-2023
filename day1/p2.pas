@@ -115,8 +115,6 @@ begin
 		res := ParseEndDigits(line);
 		n := res.first * 10 + res.last;
 		sum += n;
-		writeln (line, ' -> ', res.first, ' ', res.last, ' ', n, ' ', sum);
-		(**readln;**)
 	end;
 
 	writeln (sum);
